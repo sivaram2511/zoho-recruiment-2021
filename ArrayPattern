@@ -1,0 +1,23 @@
+package com.company;
+
+public class Main {
+
+    public static void main(String[] args) {
+
+    int num = 5;
+    int temp = num;
+    for(int r = 0; r <num;r++){
+        temp = num + 1;
+        for(int c = 0; c <num; c++){
+            if(r >= c){
+                temp = temp - 1;
+            }
+            System.out.print(temp+" ");
+        }
+        System.out.println("");
+    }
+
+
+    }
+
+}
