@@ -1,0 +1,171 @@
+public class Main2{
+    public static void main(String[] args) {
+//        1. You are given two sorted integer arrays A and B. The sort order can be ascending or descending.
+//        Write a program to create a array C that contains integers from A and B. C is in ascending order and has no duplicate.
+//        Note: Removal of duplicates and ordering has to be done while adding elements to C. i.e. don't write separate loops to
+//        sort and remove duplicates.
+
+//        Input: [3, 6, 9], [7, 6, 5]
+        // idx1=1 , idx2 =n
+        //3,
+//        Output: [3, 5, 6, 7, 8, 9]
+
+        int[] arr1 = {3, 6, 9};
+        int[] arr2 = {8, 7, 5};
+        boolean isArr1AO = arr1[0] < arr1[arr1.length -1] ? true : false;
+        boolean isArr2AO = arr2[0] < arr2[arr2.length -1] ? true : false;
+
+        int arr3[] =  new int[arr1.length+arr2.length];
+        int arr1Top = 0, arr2Top = 0;
+        int arr1Last = arr1.length-1, arr2Last = arr2.length-1;
+        int small = -1;
+        int cntr = 1;
+        boolean arr1Flag = false, arr2Flag = false;
+
+                small = Integer.MAX_VALUE;
+                for(int jj = 0; jj < arr1.length; jj++) {
+                    small = small > arr1[jj] ? arr1[jj] : small;
+//                    arr1Flag = true;
+                }
+                for(int kk = 0; kk < arr2.length; kk++){
+                    small = small > arr2[kk] ? arr2[kk]: small;
+                }
+
+        int old = small;
+        arr3[0] = old;
+        for(int ii = 1 ; ii < arr3.length; ii++ ){
+            old = arr3[ii-1];
+            small= Integer.MAX_VALUE;
+
+            for(int jj = 0; jj < arr1.length; jj++){
+                if (old < arr1[jj] && small > arr1[jj]){
+                    small = arr1[jj];
+                }
+
+            }
+            for(int jj = 0; jj < arr2.length; jj++){
+                if (old < arr2[jj] && small > arr2[jj]){
+                    small = arr2[jj];
+                }
+            }
+            if(arr3[ii-1]!=small){
+            arr3[ii] = small;
+                cntr++;
+            }
+
+        }
+
+        System.out.print("{");
+        for(int ii = 0 ;ii < cntr ;ii++) {
+            System.out.print(arr3[ii]);
+            if(ii != cntr-1)
+                System.out.print(", ");
+        }
+        System.out.println("}");
+
+    }
+}
+
+
+
+
+
+
+
+
+//import java.io.;
+
+public class Main{
+    public static void main(String[] args) {
+//        Input : {1, 2, 3, 4, 5, 6, 7}
+        //7234561
+        //7134562
+        //7164532
+//        Output : {7, 1, 6, 2, 5, 3, 4}
+
+        int arr[] = {1, 2, 3, 4, 5, 6, 7, 8};
+        int last = arr.length -1;
+        int mid = arr.length%2 == 0 ? arr.length/2 : arr.length/2 + 1;
+//        System.out.println(" Input : {1, 2, 3, 4, 5, 6, 7}");
+        for(int ii = 0; ii < mid; ii++){
+            if(ii%2 == 0){
+                int temp = arr[last];
+                arr[last] = arr[ii];
+                arr[ii] = temp;
+                //81726354
+//                last--;
+            }
+            else{
+                int temp = arr[arr.length-1];
+                arr[arr.length-1] = arr[ii];
+                arr[ii] = temp;
+                last--;
+            }
+            System.out.println("");
+            for(int i : arr)
+                System.out.print(i+",");
+        }
+        System.out.print("{");
+        for(int ii = 0 ;ii < arr.length ;ii++) {
+            System.out.print(arr[ii]);
+            if(ii != arr.length-1)
+                System.out.print(", ");
+        }
+        System.out.println("}");
+
+    }
+
+}
+
+
+
+
+
+
+
+[9:23 AM, 3/8/2021] Subash😍 20-june: second problem oda ennoda solution<
+[9:23 AM, 3/8/2021] Subash😍 20-june: public class Main{
+    public static void main(String[] args) {
+
+        int arr[] = {1, 2, 3, 4, 5, 6, 7, 8};
+        int start = 0;
+
+        for(int ii = 0; ii < arr.length; ii++ ) {
+            boolean maxFlag = false;
+            int min = start, max = start;
+            if (ii % 2 == 0) {
+                for (int jj = start; jj < arr.length; jj++) {
+                    maxFlag = true;
+                    max = (arr[max] > arr[jj]) ? max : jj;
+                }
+            } else {
+                for (int jj = start; jj < arr.length; jj++) {
+                    min = (arr[min] < arr[jj]) ? min : jj;
+                }
+            }
+
+            if (maxFlag) {
+                int temp = arr[max];
+                arr[max] = arr[ii];
+                arr[ii] = temp;
+                start++;
+            }else{
+                int temp = arr[min];
+                arr[min] = arr[ii];
+                arr[ii] = temp;
+                start++;
+            }
+        }
+
+
+        System.out.print("{");
+        for(int ii = 0 ;ii < arr.length ;ii++) {
+            System.out.print(arr[ii]);
+            if(ii != arr.length-1)
+                System.out.print(", ");
+        }
+        System.out.println("}");
+
+    }
+
+}
