@@ -1,0 +1,739 @@
+using System;
+using System.Collections.Generic;
+
+
+namespace ConsoleApp1
+{
+    public class Customer
+    {
+        public int CustId;
+        public int AcountNumber;
+        public string CustName;
+        public int Balance;
+        public string EncrytPwd;
+    }
+
+    public class TrancationHistory
+    {
+        public int CustId;
+        public int TransID;
+        public string TransType;
+        public int Balance;
+        public int Amount;
+    }
+
+    public class PasswordLog
+    {
+        public int CustId;
+        public string LastPassword;
+        public DateTime ChangeDM;
+    }
+
+
+    public class Program
+    {
+        public static void main(string[] args)
+        {
+            List<TrancationHistory> AllHistory = new List<TrancationHistory>();
+            var AllCustomer = Initialization(AllHistory);
+            List<PasswordLog> AllPasswordLog = new List<PasswordLog>();
+
+            bool AlreadyLogined = false;
+            bool startSystem = true;
+            int CustId = 0;
+            string username = "";
+            while (startSystem)
+            {
+                Console.WriteLine("Press 1 to add Initialization");
+                Console.WriteLine("Press 2 to add new customer");
+                Console.WriteLine("Press 3 to Cash Deposit");
+                Console.WriteLine("Press 4 to ATM Withdrawal");
+                Console.WriteLine("Press 5 to Money Tranfer");
+                Console.WriteLine("Press 6 to Get report");
+                Console.WriteLine("Press 7 to Get Top Customer Details");
+                Console.WriteLine("Press 8 to change Password");
+                int k = int.Parse(Console.ReadLine());
+                switch (k)
+                {
+                    case 1:
+                        Initialization(AllHistory);
+                        break;
+                    case 2:
+
+                        if (Authentication() || AlreadyLogined)
+                        {
+                            AddNewCustomer(AllCustomer, AllHistory);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid user or no access");
+                        }
+                        break;
+                    case 3:
+                        if (Authentication() || AlreadyLogined)
+                        {
+                            Console.WriteLine("Enter Deposit balance");
+                            int Balance = int.Parse(Console.ReadLine());
+                            CashDeposit(Balance, CustId, "CashDeposit");
+                            MaintainecFees(CustId);
+                            isForcePasswordChange(CustId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid user or no access");
+                        }
+                        break;
+                    case 4:
+                        if (Authentication() || AlreadyLogined)
+                        {
+                            Console.WriteLine("Enter Withdrawal Amount");
+                            int Amount = int.Parse(Console.ReadLine());
+                            Withdrawal(Amount, CustId, "ATM Withdrawal");
+                            MaintainecFees(CustId);
+                            isForcePasswordChange(CustId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid user or no access");
+                        }
+                        break;
+                    case 5:
+                        if (Authentication() || AlreadyLogined)
+                        {
+                            Console.WriteLine("Enter To Account number");
+                            int AccountN = int.Parse(Console.ReadLine());
+                            Console.WriteLine("Enter Tranfer Amount");
+                            int Amount = int.Parse(Console.ReadLine());
+                            MoneyTransfer(Amount, CustId, AccountN);
+                            MaintainecFees(CustId);
+                            isForcePasswordChange(CustId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid user or no access");
+                        }
+                        break;
+                    case 6:
+                        if (Authentication() || AlreadyLogined)
+                        {
+                            Console.WriteLine("Enter Customer id to get report");
+                            int CustomwerId = int.Parse(Console.ReadLine());
+
+                            GetReport(CustomwerId, AllHistory);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid user or no access");
+                        }
+                        break;
+                    case 7:
+                        if (Authentication() || AlreadyLogined)
+                        {
+                            Console.WriteLine("How many number of record needed");
+                            int count = int.Parse(Console.ReadLine());
+                            getTopCustomerDetails(AllCustomer, count)
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid user or no access");
+                        }
+                        break;
+                    case 8:
+                        if (Authentication() || AlreadyLogined)
+                        {
+                            Console.WriteLine("enter New password");
+                            string Password = Console.ReadLine();
+                            if (!(Password.Length >= 8))
+                            {
+                                string pwd = Password;
+                                bool flag = true;
+                                while (flag)
+                                {
+                                    Console.WriteLine("New password should be 8 character");
+                                    Password = Console.ReadLine();
+                                    if (pwd.Length >= 8)
+                                    {
+                                        flag = false;
+                                    }
+                                }
+                            }
+
+                            Console.WriteLine("Reenter New password");
+                            string ReTypePassword = Console.ReadLine();
+                            if (ReTypePassword != Password)
+                            {
+                                string pwd = ReTypePassword;
+                                bool flag = true;
+                                while (flag)
+                                {
+                                    Console.WriteLine("New password and ReEntered password should be same");
+                                    ReTypePassword = Console.ReadLine();
+                                    if (pwd == Password)
+                                    {
+                                        flag = false;
+                                    }
+                                }
+                            }
+                            changePassword(CustId, Password);
+                            Authentication(username, EncryptPassword(Password));
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid user or no access");
+                        }
+                        break;
+
+                }
+            }
+        }
+
+        public static List<Customer> Initialization(List<TrancationHistory> lsHistory)
+        {
+            List<Customer> lsCustomer = new List<Customer>();
+            Customer cusObj = new Customer();
+            cusObj.CustId = 11;
+            cusObj.AcountNumber = 11011;
+            cusObj.CustName = "Kumer";
+            cusObj.Balance = 10000;
+            cusObj.EncrytPwd = "ApipNbjm";
+            lsCustomer.Add(cusObj);
+            PostTranctionHistory("Opening", cusObj.CustId, 10000, 10000, lsHistory);
+
+            return lsCustomer;
+        }
+
+        public static void AddNewCustomer(List<Customer> AllCustomer, List<TrancationHistory> lsHistory)
+        {
+            string custName = "";
+            string Password = "";
+            string ReTypePassword = "";
+            int initialBalance = 10000;
+            Console.WriteLine("enter customer name");
+            custName = Console.ReadLine() ;
+            Console.WriteLine("enter New password");
+            Password = Console.ReadLine();
+            if (!(Password.Length >= 8))
+            {
+                bool flag = true;
+                while (flag)
+                {
+                    Console.WriteLine("New password should be 8 character");
+                    Password = Console.ReadLine();
+                    if (password.Length >= 8)
+                    {
+                        flag = false;
+                    }
+                }
+            }
+
+            Console.WriteLine("Reenter New password");
+            ReTypePassword = Console.ReadLine();
+            if (ReTypePassword.Length != Password)
+            {
+                bool flag = true;
+                while (flag)
+                {
+                    Console.WriteLine("New password and ReEntered password should be same");
+                    ReTypePassword = Console.ReadLine().toString();
+                    if (ReTypePassword.Length == Password)
+                    {
+                        flag = false;
+                    }
+                }
+            }
+
+            Console.WriteLine("if you want to enter account balance. Press 1 orelse Press 2");
+            int k = Int.Parse(Console.ReadLine());
+            switch (k)
+            {
+                case 1:
+                    {
+                        Console.WriteLine("Enter amount");
+                        initialBalance = int.Parse(Console.ReadLine());
+
+                    }
+                    break;
+
+            }
+
+            Customer cusObj = new Customer();
+            cusObj.CustId = GenerateCutomerId(AllCustomer);
+            cusObj.AcountNumber = GenerateAccountNumber(AllCustomer);
+            cusObj.CustName = custName;
+            cusObj.Balance = initialBalance;
+            cusObj.EncrytPwd = EncryptPassword(Password);
+            AllCustomer.Add(cusObj);
+
+            PostTranctionHistory("Opening", cusObj.CustId, initialBalance, initialBalance, lsHistory);
+        }
+
+
+        public static int GenerateCutomerId(List<int> lsCustomer)
+        {
+            int maxId, newId;
+            if (lsCustomer.Count == 0)
+            {
+                maxId = 11;
+                return maxId;
+            }
+            maxId = lsCustomer[0];
+            for (int i = 1; i < lsCustomer.Count; i++)
+            {
+                if (maxId < lsCustomer[i])
+                {
+                    maxId = lsCustomer[i];
+                }
+            }
+            int digitsCount = 0;
+            while (maxId > 0)
+            {
+                int temp = maxId % 10;
+                digitsCount++;
+                maxId = maxId / 10;
+            }
+
+            if (maxId == 9)
+            {
+                Count = Count + 1;
+                maxId = 0;
+            }
+            for (int i = 0; i < Count; i++)
+            {
+                int multipler = 0;
+                for (int k = 0; k < i; i++)
+                {
+                    multipler = multipler * 10;
+                    //0, 10, 100 
+                }
+                newId = newId + (multipler * maxId + 1);
+            }
+            return newId;
+
+        }
+
+        public static int GenerateAccountNumber(List<int> lsCustomer)
+        {
+            int maxAcc, newAcc;
+            if (lsCustomer.Count == 0)
+            {
+                newAcc = 11011;
+                return newAcc;
+            }
+            maxAcc = lsCustomer[0];
+            for (int i = 1; i < lsCustomer.Count; i++)
+            {
+                if (maxAcc < lsCustomer[i])
+                {
+                    maxAcc = lsCustomer[i];
+                }
+            }
+            int digitsCount = 0;
+            while (maxAcc > 0)
+            {
+                int temp = maxAcc % 10;
+                digitsCount++;
+                maxAcc = maxAcc / 10;
+            }
+
+            if (maxId == 9)
+            {
+                Count = Count + 2;
+                maxAcc = 0;
+            }
+            for (int i = 0; i < Count; i++)
+            {
+                int multipler = 0;
+                for (int k = 0; k < i; i++)
+                {
+                    multipler = multipler * 10;
+                    //0, 10, 100 
+                }
+                if (Count / 2 + 1 == i)
+                {
+                    coutinue;
+                }
+                else
+                {
+                    multipler = multipler * i;
+                    newAcc = newAcc + (multipler * maxAcc + 1);
+                }
+            }
+            return newId;
+
+        }
+
+
+        public static string EncryptPassword(string pwd)
+        {
+            string EncrytPwd = "";
+            for (int i = 0; i < pwd.Length; i++)
+            {
+                int ascilKey = (int)pwd[i];
+                if (ascilKey > 65 && ascilKey < 92)
+                {
+                    ascilKey = ascilKey == 91 ? 65 : ascilKey + 1;
+                }
+                else if (ascilKey > 97 && ascilKey < 124)
+                {
+                    ascilKey = ascilKey == 123 ? 97 : ascilKey + 1;
+                }
+                else if (ascilKey > 34 && ascilKey < 44)
+                {
+                    ascilKey = ascilKey == 44 ? 34 : ascilKey + 1;
+                }
+                EncrytPwd = string.Concat(EncrytPwd, (char)ascilKey);
+            }
+
+            return EncrytPwd;
+        }
+
+
+        public static bool Authentication()
+        {
+            Console.WriteLine("Enter your username to authenticate");
+            var username = Console.ReadLine().toString();
+            Console.WriteLine("Enter your password to authenticate");
+            var Password = Console.ReadLine().toString();
+            if (lsCustomer.Any(r => r.CustName == username))
+            {
+                if (lsCustomer.Any(r => r.CustName == username && r.Password == DecrytionPwd(Password)){
+                    AlreadyLogined = true;
+                    username = username;
+                    CustId = lsCustomer.Where(r => r.CustName == username && r.Password == DecrytionPwd(Password)).CustId;
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static string DecrytionPwd(string Password)
+        {
+            string DecrytPwd = "";
+            for (int i = 0; i < Password.Length; i++)
+            {
+                int ascilKey = (int)Password[i];
+                if (ascilKey > 65 && ascilKey < 92)
+                {
+                    ascilKey = ascilKey == 65 ? 91 : ascilKey - 1;
+                }
+                else if (ascilKey > 97 && ascilKey < 124)
+                {
+                    ascilKey = ascilKey == 97 ? 123 : ascilKey - 1;
+                }
+                else if (ascilKey > 34 && ascilKey < 44)
+                {
+                    ascilKey = ascilKey == 34 ? 44 : ascilKey - 1;
+                }
+                DecrytPwd = string.Concat(DecrytPwd, (char)ascilKey);
+            }
+
+            return DecrytPwd;
+        }
+
+        public static int CashDeposit(int Balance, int CustId, string TransType)
+        {
+            int newBalance = 0;
+            for (int i = 0; i < lsCustomer.Length; i++)
+            {
+                if (lsCustomer[i].CustId == CustId)
+                {
+                    lsCustomer[i].Balance = lsCustomer[i].Balance + Balance;
+                    newBalance = lsCustomer[i].Balance;
+                    PostTranctionHistory(TransType, CustId, Balance, newBalance, lsHistory);
+                    break;
+                }
+            }
+
+            return newBalance;
+        }
+
+        public static string Withdrawal(int EnteredAmount, int CustId, string TransType)
+        {
+            string status = "";
+            for (int i = 0; i < lsCustomer.Length; i++)
+            {
+                if (lsCustomer[i].CustId == ToCustNo)
+                {
+                    status = validatingMoney(EnteredAmount, CustId);
+                    if (status == "Success")
+                    {
+                        lsCustomer[i].Balance = lsCustomer[i].Balance - EnteredAmount;
+                        PostTranctionHistory(TransType, CustId, Balance, newBalance, lsHistory);
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        public static string MoneyTransfer(int EnteredAmount, int CustId, int ToCustAccNo)
+        {
+            string status = "";
+            int existingBal = 0;
+            for (int i = 0; i < lsCustomer.Length; i++)
+            {
+                if (lsCustomer[i].AcountNumber == ToCustAccNo)
+                {
+                    status = validatingMoney(EnteredAmount, CustId);
+                    if (status == "Success")
+                    {
+                        existingBal = lsCustomer[i].Balance;
+                        int newBal = CashDeposit(EnteredAmount, lsCustomer[i].CustId, "TransferTo" + ToCustAccNo);
+                        if (newBal - EnteredAmount == existingBal)
+                        {
+                            status = Withdrawal(EnteredAmount, CustId, "TransferFrom" + lsCustomer.First(r => r.AcountNumber));
+                        }
+                    }
+                    else
+                    {
+                        status = "Server down now. try after some time";
+                    }
+                }
+            }
+
+            return status;
+        }
+
+        public static string validatingMoney(int EnteredAmount, int CustId)
+        {
+            string statusMsg = "";
+            for (int i = 0; i < lsCustomer.Length; i++)
+            {
+                if (lsCustomer[i].CustId == CustId)
+                {
+                    if (lsCustomer[i].Balance - 1000 >= EnteredAmount)
+                    {
+                        statusMsg = "Success";
+                    }
+                    else
+                    {
+                        statusMsg = "Violating maintain a minimum balance of 1000";
+                        if (lsCustomer[i].Balance >= EnteredAmount)
+                        {
+                            statusMsg = "Insuffient balance";
+                        }
+                        else
+                        {
+                            statusMsg = "Success";
+                        }
+                    }
+                }
+            }
+
+            return statusMsg;
+        }
+
+        public static void PostTranctionHistory(string TransType,
+        int CustId, int Amount, int balance, List<TrancationHistory> lsHistory)
+        {
+            int TranId = lsHistory.Count > 0 :  lsHistory.Count + 1 : 1;
+            TrancationHistory newTra = new TrancationHistory();
+            newTra.CustId = CustId;
+            newTra.TranId = TranId;
+            newTra.TransType = TransType;
+            newTra.Amount = Amount;
+            newTra.Balance = balance;
+            newTra.TrancationTM = DateTime.now;
+            lsHistory.Add(newTra);
+        }
+
+        public static List<TrancationHistory> GetReport(int CustId, List<TrancationHistory> lsHistory)
+        {
+            return lsHistory.Where(r => r.CustId == CustId).ToList();
+        }
+
+        public static List<Customer> getTopCustomerDetails(List<Customer> AllCustomer, int n)
+        {
+
+            List<Customer> newList = new List<Customer>();
+            //bubble sort
+            for (int i = 0; i < AllCustomer.Count; i++)
+            {
+                for (int j = 0; j < AllCustomer.Count - i; j++)
+                {
+                    if (AllCustomer[j].Balance > AllCustomer[j++].Balance)
+                    {
+                        var TempFirst = AllCustomer[j];
+                        var TempSecond = AllCustomer[j + 1];
+                        AllCustomer.Remove(TempFirst);
+                        AllCustomer.Remove(TempSecond);
+                        AllCustomer.Add(TempFirst, j + 1);
+                        AllCustomer.Add(TempSecond, j);
+                    }
+                }
+            }
+
+            for (int i = 0; i < n; i++)
+            {
+                newList.AddRange(AllCustomer[i]);
+            }
+            return newList;
+        }
+
+
+        public static string changePassword(int CustId, string Pwd)
+        {
+            string status = "";
+            if (Pwd.Length >= 6)
+            {
+                int lowerCount = 0, upperCount = 0, numCount = 0;
+                for (int i = 0; i < Pwd.Length; i++)
+                {
+                    int ascilKey = (int)Pwd[i];
+                    if (ascilKey > 65 && ascilKey < 92)
+                    {
+                        upperCount++;
+                    }
+                    else if (ascilKey > 97 && ascilKey < 124)
+                    {
+                        lowerCount++;
+                    }
+                    else if (ascilKey > 34 && ascilKey < 44)
+                    {
+                        numCount++;
+                    }
+
+                }
+                if (lowerCount < 2)
+                {
+                    status = "At least 2 lower case";
+                }
+                else if (upperCount < 2)
+                {
+                    status = "At least 2 upper case";
+                }
+                else if (numCount < 2)
+                {
+                    status = "At least 2 numbers";
+                }
+                else if (isViolecePasswordLogCheck(CustId, EncryptPassword(pwd)))
+                {
+                    status = "Should be new Password from last 3 password";
+                }
+                else
+                {
+                    string EnPwd = EncryptPassword(pwd);
+                    for (int i = 0; i < AllCustomer.Count; i++)
+                    {
+                        if (AllCustomer[i].CustId == CustId)
+                        {
+                            AllCustomer[i].CustId = EnPwd;
+                            PostPasswordHistory(CustId, EnPwd);
+                        }
+                    }
+                    status = "Success";
+                }
+            }
+
+            else
+            {
+                status = "New Password minimum Length of  6";
+            }
+        }
+
+        public static void PostPasswordHistory(int CustId, string LastPassword)
+        {
+            int LogCount = 0;
+            for (int i = 0; i < AllPasswordLog.Count; i++)
+            {
+                if (AllPasswordLog[i].CustId == CustId)
+                {
+                    LogCount++;
+                }
+            }
+            if (LogCount > 2)
+            {
+                for (int i = 0; i < AllPasswordLog.Count; i++)
+                {
+                    for (int j = 0; j < AllPasswordLog.Count - i; j++)
+                    {
+                        if (AllPasswordLog[j].ChangeDM > AllPasswordLog[j++].ChangeDM)
+                        {
+                            var TempFirst = AllPasswordLog[j];
+                            var TempSecond = AllPasswordLog[j + 1];
+                            AllPasswordLog.Remove(TempFirst);
+                            AllPasswordLog.Remove(TempSecond);
+                            AllPasswordLog.Add(TempFirst, j + 1);
+                            AllPasswordLog.Add(TempSecond, j);
+                        }
+                    }
+
+                }
+                for (int i = 0; i < AllPasswordLog.Count; i++)
+                {
+                    if (AllPasswordLog[j].CustId == CustId && LogCount > 2)
+                    {
+                        AllPasswordLog.Remove(AllPasswordLog[j]);
+                        LogCount--;
+                    }
+
+                }
+
+            }
+
+            PasswordLog newEntry = new PasswordLog();
+            newEntry.CustId = CustId;
+            newEntry.LastPassword = LastPassword;
+            newEntry.ChangeDM = DateTime.Now;
+            AllPasswordLog.Add(newEntry)
+    
+
+    }
+
+        public static bool isViolecePasswordLogCheck(int CustId, string LastPassword)
+        {
+            for (int i = 0; i < AllPasswordLog.Count; i++)
+            {
+                if (AllPasswordLog[i].CustId == CustId && AllPasswordLog[i].LastPassword == LastPassword)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool isForcePasswordChange(int CustId)
+        {
+            int Count = 0;
+            for (int i = 0; i < AllHistory.Count; i++)
+            {
+                if (AllHistory[i].CustId == CustId && AllHistory[i].TransType != "Opening")
+                {
+                    Count++;
+                }
+            }
+
+            if (Count % 5 == 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public static void MaintainecFees(int CustId)
+        {
+            int Count = 0;
+            for (int i = 0; i < AllHistory.Count; i++)
+            {
+                if (AllHistory[i].CustId == CustId && AllHistory[i].TransType != "Opening")
+                {
+                    Count++;
+                }
+            }
+
+            if (Count % 10 == 0)
+            {
+                var topThreeBalancer = getTopCustomerDetails(3);
+                if (topThreeBalancer.(r => r.CustId != CustId))
+                {
+                    Withdrawal(100, CustId, "MaintainecFees");
+                }
+            }
+
+        }
+    }
+
+}
