@@ -1,740 +1,650 @@
-using System;
-using System.Collections.Generic;
-
-
-namespace ConsoleApp1
-{
-    public class Customer
-    {
-        public int CustId;
-        public int AcountNumber;
-        public string CustName;
-        public int Balance;
-        public string EncrytPwd;
-    }
-
-    public class TrancationHistory
-    {
-        public int CustId;
-        public int TransID;
-        public string TransType;
-        public int Balance;
-        public int Amount;
-    }
-
-    public class PasswordLog
-    {
-        public int CustId;
-        public string LastPassword;
-        public DateTime ChangeDM;
-    }
-
-
-    public class Program
-    {
-        public static void main(string[] args)
-        {
-            List<TrancationHistory> AllHistory = new List<TrancationHistory>();
-            var AllCustomer = Initialization(AllHistory);
-            List<PasswordLog> AllPasswordLog = new List<PasswordLog>();
-
-            bool AlreadyLogined = false;
-            bool startSystem = true;
-            int CustId = 0;
-            string username = "";
-            while (startSystem)
-            {
-                Console.WriteLine("Press 1 to add Initialization");
-                Console.WriteLine("Press 2 to add new customer");
-                Console.WriteLine("Press 3 to Cash Deposit");
-                Console.WriteLine("Press 4 to ATM Withdrawal");
-                Console.WriteLine("Press 5 to Money Tranfer");
-                Console.WriteLine("Press 6 to Get report");
-                Console.WriteLine("Press 7 to Get Top Customer Details");
-                Console.WriteLine("Press 8 to change Password");
-                int k = int.Parse(Console.ReadLine());
-                switch (k)
-                {
-                    case 1:
-                        Initialization(AllHistory);
-                        break;
-                    case 2:
-
-                        if (Authentication() || AlreadyLogined)
-                        {
-                            AddNewCustomer(AllCustomer, AllHistory);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid user or no access");
-                        }
-                        break;
-                    case 3:
-                        if (Authentication() || AlreadyLogined)
-                        {
-                            Console.WriteLine("Enter Deposit balance");
-                            int Balance = int.Parse(Console.ReadLine());
-                            CashDeposit(Balance, CustId, "CashDeposit");
-                            MaintainecFees(CustId);
-                            isForcePasswordChange(CustId);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid user or no access");
-                        }
-                        break;
-                    case 4:
-                        if (Authentication() || AlreadyLogined)
-                        {
-                            Console.WriteLine("Enter Withdrawal Amount");
-                            int Amount = int.Parse(Console.ReadLine());
-                            Withdrawal(Amount, CustId, "ATM Withdrawal");
-                            MaintainecFees(CustId);
-                            isForcePasswordChange(CustId);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid user or no access");
-                        }
-                        break;
-                    case 5:
-                        if (Authentication() || AlreadyLogined)
-                        {
-                            Console.WriteLine("Enter To Account number");
-                            int AccountN = int.Parse(Console.ReadLine());
-                            Console.WriteLine("Enter Tranfer Amount");
-                            int Amount = int.Parse(Console.ReadLine());
-                            MoneyTransfer(Amount, CustId, AccountN);
-                            MaintainecFees(CustId);
-                            isForcePasswordChange(CustId);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid user or no access");
-                        }
-                        break;
-                    case 6:
-                        if (Authentication() || AlreadyLogined)
-                        {
-                            Console.WriteLine("Enter Customer id to get report");
-                            int CustomwerId = int.Parse(Console.ReadLine());
-
-                            GetReport(CustomwerId, AllHistory);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid user or no access");
-                        }
-                        break;
-                    case 7:
-                        if (Authentication() || AlreadyLogined)
-                        {
-                            Console.WriteLine("How many number of record needed");
-                            int count = int.Parse(Console.ReadLine());
-                            getTopCustomerDetails(AllCustomer, count)
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid user or no access");
-                        }
-                        break;
-                    case 8:
-                        if (Authentication() || AlreadyLogined)
-                        {
-                            Console.WriteLine("enter New password");
-                            string Password = Console.ReadLine();
-                            if (!(Password.Length >= 8))
-                            {
-                                string pwd = Password;
-                                bool flag = true;
-                                while (flag)
-                                {
-                                    Console.WriteLine("New password should be 8 character");
-                                    Password = Console.ReadLine();
-                                    if (pwd.Length >= 8)
-                                    {
-                                        flag = false;
-                                    }
-                                }
-                            }
-
-                            Console.WriteLine("Reenter New password");
-                            string ReTypePassword = Console.ReadLine();
-                            if (ReTypePassword != Password)
-                            {
-                                string pwd = ReTypePassword;
-                                bool flag = true;
-                                while (flag)
-                                {
-                                    Console.WriteLine("New password and ReEntered password should be same");
-                                    ReTypePassword = Console.ReadLine();
-                                    if (pwd == Password)
-                                    {
-                                        flag = false;
-                                    }
-                                }
-                            }
-                            changePassword(CustId, Password);
-                            Authentication(username, EncryptPassword(Password));
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid user or no access");
-                        }
-                        break;
-
-                }
-            }
-        }
-
-        public static List<Customer> Initialization(List<TrancationHistory> lsHistory)
-        {
-            List<Customer> lsCustomer = new List<Customer>();
-            Customer cusObj = new Customer();
-            cusObj.CustId = 11;
-            cusObj.AcountNumber = 11011;
-            cusObj.CustName = "Kumer";
-            cusObj.Balance = 10000;
-            cusObj.EncrytPwd = "ApipNbjm";
-            lsCustomer.Add(cusObj);
-            PostTranctionHistory("Opening", cusObj.CustId, 10000, 10000, lsHistory);
-
-            return lsCustomer;
-        }
-
-        public static void AddNewCustomer(List<Customer> AllCustomer, List<TrancationHistory> lsHistory)
-        {
-            string custName = "";
-            string Password = "";
-            string ReTypePassword = "";
-            int initialBalance = 10000;
-            Console.WriteLine("enter customer name");
-            custName = Console.ReadLine() ;
-            Console.WriteLine("enter New password");
-            Password = Console.ReadLine();
-            if (!(Password.Length >= 8))
-            {
-                bool flag = true;
-                while (flag)
-                {
-                    Console.WriteLine("New password should be 8 character");
-                    Password = Console.ReadLine();
-                    if (password.Length >= 8)
-                    {
-                        flag = false;
-                    }
-                }
-            }
-
-            Console.WriteLine("Reenter New password");
-            ReTypePassword = Console.ReadLine();
-            if (ReTypePassword.Length != Password)
-            {
-                bool flag = true;
-                while (flag)
-                {
-                    Console.WriteLine("New password and ReEntered password should be same");
-                    ReTypePassword = Console.ReadLine().toString();
-                    if (ReTypePassword.Length == Password)
-                    {
-                        flag = false;
-                    }
-                }
-            }
-
-            Console.WriteLine("if you want to enter account balance. Press 1 orelse Press 2");
-            int k = Int.Parse(Console.ReadLine());
-            switch (k)
-            {
-                case 1:
-                    {
-                        Console.WriteLine("Enter amount");
-                        initialBalance = int.Parse(Console.ReadLine());
-
-                    }
-                    break;
-
-            }
-
-            Customer cusObj = new Customer();
-            cusObj.CustId = GenerateCutomerId(AllCustomer);
-            cusObj.AcountNumber = GenerateAccountNumber(AllCustomer);
-            cusObj.CustName = custName;
-            cusObj.Balance = initialBalance;
-            cusObj.EncrytPwd = EncryptPassword(Password);
-            AllCustomer.Add(cusObj);
-
-            PostTranctionHistory("Opening", cusObj.CustId, initialBalance, initialBalance, lsHistory);
-        }
-
-
-        public static int GenerateCutomerId(List<int> lsCustomer)
-        {
-            int maxId, newId;
-            if (lsCustomer.Count == 0)
-            {
-                maxId = 11;
-                return maxId;
-            }
-            maxId = lsCustomer[0];
-            for (int i = 1; i < lsCustomer.Count; i++)
-            {
-                if (maxId < lsCustomer[i])
-                {
-                    maxId = lsCustomer[i];
-                }
-            }
-            int digitsCount = 0;
-            while (maxId > 0)
-            {
-                int temp = maxId % 10;
-                digitsCount++;
-                maxId = maxId / 10;
-            }
-
-            if (maxId == 9)
-            {
-                Count = Count + 1;
-                maxId = 0;
-            }
-            for (int i = 0; i < Count; i++)
-            {
-                int multipler = 0;
-                for (int k = 0; k < i; i++)
-                {
-                    multipler = multipler * 10;
-                    //0, 10, 100 
-                }
-                newId = newId + (multipler * maxId + 1);
-            }
-            return newId;
-
-        }
-
-        public static int GenerateAccountNumber(List<int> lsCustomer)
-        {
-            int maxAcc, newAcc;
-            if (lsCustomer.Count == 0)
-            {
-                newAcc = 11011;
-                return newAcc;
-            }
-            maxAcc = lsCustomer[0];
-            for (int i = 1; i < lsCustomer.Count; i++)
-            {
-                if (maxAcc < lsCustomer[i])
-                {
-                    maxAcc = lsCustomer[i];
-                }
-            }
-            int digitsCount = 0;
-            while (maxAcc > 0)
-            {
-                int temp = maxAcc % 10;
-                digitsCount++;
-                maxAcc = maxAcc / 10;
-            }
-
-            if (maxId == 9)
-            {
-                Count = Count + 2;
-                maxAcc = 0;
-            }
-            for (int i = 0; i < Count; i++)
-            {
-                int multipler = 0;
-                for (int k = 0; k < i; i++)
-                {
-                    multipler = multipler * 10;
-                    //0, 10, 100 
-                }
-                if (Count / 2 + 1 == i)
-                {
-                    coutinue;
-                }
-                else
-                {
-                    multipler = multipler * i;
-                    newAcc = newAcc + (multipler * maxAcc + 1);
-                }
-            }
-            return newId;
-
-        }
-
-
-        public static string EncryptPassword(string pwd)
-        {
-            string EncrytPwd = "";
-            for (int i = 0; i < pwd.Length; i++)
-            {
-                int ascilKey = (int)pwd[i];
-                if (ascilKey > 65 && ascilKey < 92)
-                {
-                    ascilKey = ascilKey == 91 ? 65 : ascilKey + 1;
-                }
-                else if (ascilKey > 97 && ascilKey < 124)
-                {
-                    ascilKey = ascilKey == 123 ? 97 : ascilKey + 1;
-                }
-                else if (ascilKey > 34 && ascilKey < 44)
-                {
-                    ascilKey = ascilKey == 44 ? 34 : ascilKey + 1;
-                }
-                EncrytPwd = string.Concat(EncrytPwd, (char)ascilKey);
-            }
-
-            return EncrytPwd;
-        }
-
-
-        public static bool Authentication()
-        {
-            Console.WriteLine("Enter your username to authenticate");
-            var username = Console.ReadLine().toString();
-            Console.WriteLine("Enter your password to authenticate");
-            var Password = Console.ReadLine().toString();
-            if (lsCustomer.Any(r => r.CustName == username))
-            {
-                if (lsCustomer.Any(r => r.CustName == username && r.Password == DecrytionPwd(Password)){
-                    AlreadyLogined = true;
-                    username = username;
-                    CustId = lsCustomer.Where(r => r.CustName == username && r.Password == DecrytionPwd(Password)).CustId;
-                    return true;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        public static string DecrytionPwd(string Password)
-        {
-            string DecrytPwd = "";
-            for (int i = 0; i < Password.Length; i++)
-            {
-                int ascilKey = (int)Password[i];
-                if (ascilKey > 65 && ascilKey < 92)
-                {
-                    ascilKey = ascilKey == 65 ? 91 : ascilKey - 1;
-                }
-                else if (ascilKey > 97 && ascilKey < 124)
-                {
-                    ascilKey = ascilKey == 97 ? 123 : ascilKey - 1;
-                }
-                else if (ascilKey > 34 && ascilKey < 44)
-                {
-                    ascilKey = ascilKey == 34 ? 44 : ascilKey - 1;
-                }
-                DecrytPwd = string.Concat(DecrytPwd, (char)ascilKey);
-            }
-
-            return DecrytPwd;
-        }
-
-        public static int CashDeposit(int Balance, int CustId, string TransType)
-        {
-            int newBalance = 0;
-            for (int i = 0; i < lsCustomer.Length; i++)
-            {
-                if (lsCustomer[i].CustId == CustId)
-                {
-                    lsCustomer[i].Balance = lsCustomer[i].Balance + Balance;
-                    newBalance = lsCustomer[i].Balance;
-                    PostTranctionHistory(TransType, CustId, Balance, newBalance, lsHistory);
-                    break;
-                }
-            }
-
-            return newBalance;
-        }
-
-        public static string Withdrawal(int EnteredAmount, int CustId, string TransType)
-        {
-            string status = "";
-            for (int i = 0; i < lsCustomer.Length; i++)
-            {
-                if (lsCustomer[i].CustId == ToCustNo)
-                {
-                    status = validatingMoney(EnteredAmount, CustId);
-                    if (status == "Success")
-                    {
-                        lsCustomer[i].Balance = lsCustomer[i].Balance - EnteredAmount;
-                        PostTranctionHistory(TransType, CustId, Balance, newBalance, lsHistory);
-                    }
-                }
-            }
-
-            return status;
-        }
-
-        public static string MoneyTransfer(int EnteredAmount, int CustId, int ToCustAccNo)
-        {
-            string status = "";
-            int existingBal = 0;
-            for (int i = 0; i < lsCustomer.Length; i++)
-            {
-                if (lsCustomer[i].AcountNumber == ToCustAccNo)
-                {
-                    status = validatingMoney(EnteredAmount, CustId);
-                    if (status == "Success")
-                    {
-                        existingBal = lsCustomer[i].Balance;
-                        int newBal = CashDeposit(EnteredAmount, lsCustomer[i].CustId, "TransferTo" + ToCustAccNo);
-                        if (newBal - EnteredAmount == existingBal)
-                        {
-                            status = Withdrawal(EnteredAmount, CustId, "TransferFrom" + lsCustomer.First(r => r.AcountNumber));
-                        }
-                    }
-                    else
-                    {
-                        status = "Server down now. try after some time";
-                    }
-                }
-            }
-
-            return status;
-        }
-
-        public static string validatingMoney(int EnteredAmount, int CustId)
-        {
-            string statusMsg = "";
-            for (int i = 0; i < lsCustomer.Length; i++)
-            {
-                if (lsCustomer[i].CustId == CustId)
-                {
-                    if (lsCustomer[i].Balance - 1000 >= EnteredAmount)
-                    {
-                        statusMsg = "Success";
-                    }
-                    else
-                    {
-                        statusMsg = "Violating maintain a minimum balance of 1000";
-                        if (lsCustomer[i].Balance >= EnteredAmount)
-                        {
-                            statusMsg = "Insuffient balance";
-                        }
-                        else
-                        {
-                            statusMsg = "Success";
-                        }
-                    }
-                }
-            }
-
-            return statusMsg;
-        }
-
-        public static void PostTranctionHistory(string TransType,
-        int CustId, int Amount, int balance, List<TrancationHistory> lsHistory)
-        {
-            int TranId = lsHistory.Count > 0 :  lsHistory.Count + 1 : 1;
-            TrancationHistory newTra = new TrancationHistory();
-            newTra.CustId = CustId;
-            newTra.TranId = TranId;
-            newTra.TransType = TransType;
-            newTra.Amount = Amount;
-            newTra.Balance = balance;
-            newTra.TrancationTM = DateTime.now;
-            lsHistory.Add(newTra);
-        }
-
-        public static List<TrancationHistory> GetReport(int CustId, List<TrancationHistory> lsHistory)
-        {
-            return lsHistory.Where(r => r.CustId == CustId).ToList();
-        }
-
-        public static List<Customer> getTopCustomerDetails(List<Customer> AllCustomer, int n)
-        {
-
-            List<Customer> newList = new List<Customer>();
-            //bubble sort
-            for (int i = 0; i < AllCustomer.Count; i++)
-            {
-                for (int j = 0; j < AllCustomer.Count - i; j++)
-                {
-                    if (AllCustomer[j].Balance > AllCustomer[j++].Balance)
-                    {
-                        var TempFirst = AllCustomer[j];
-                        var TempSecond = AllCustomer[j + 1];
-                        AllCustomer.Remove(TempFirst);
-                        AllCustomer.Remove(TempSecond);
-                        AllCustomer.Add(TempFirst, j + 1);
-                        AllCustomer.Add(TempSecond, j);
-                    }
-                }
-            }
-
-            for (int i = 0; i < n; i++)
-            {
-                newList.AddRange(AllCustomer[i]);
-            }
-            return newList;
-        }
-
-
-        public static string changePassword(int CustId, string Pwd)
-        {
-            string status = "";
-            if (Pwd.Length >= 6)
-            {
-                int lowerCount = 0, upperCount = 0, numCount = 0;
-                for (int i = 0; i < Pwd.Length; i++)
-                {
-                    int ascilKey = (int)Pwd[i];
-                    if (ascilKey > 65 && ascilKey < 92)
-                    {
-                        upperCount++;
-                    }
-                    else if (ascilKey > 97 && ascilKey < 124)
-                    {
-                        lowerCount++;
-                    }
-                    else if (ascilKey > 34 && ascilKey < 44)
-                    {
-                        numCount++;
-                    }
-
-                }
-                if (lowerCount < 2)
-                {
-                    status = "At least 2 lower case";
-                }
-                else if (upperCount < 2)
-                {
-                    status = "At least 2 upper case";
-                }
-                else if (numCount < 2)
-                {
-                    status = "At least 2 numbers";
-                }
-                else if (isViolecePasswordLogCheck(CustId, EncryptPassword(pwd)))
-                {
-                    status = "Should be new Password from last 3 password";
-                }
-                else
-                {
-                    string EnPwd = EncryptPassword(pwd);
-                    for (int i = 0; i < AllCustomer.Count; i++)
-                    {
-                        if (AllCustomer[i].CustId == CustId)
-                        {
-                            AllCustomer[i].CustId = EnPwd;
-                            PostPasswordHistory(CustId, EnPwd);
-                        }
-                    }
-                    status = "Success";
-                }
-            }
-
-            else
-            {
-                status = "New Password minimum Length of  6";
-            }
-        }
-
-        public static void PostPasswordHistory(int CustId, string LastPassword)
-        {
-            int LogCount = 0;
-            for (int i = 0; i < AllPasswordLog.Count; i++)
-            {
-                if (AllPasswordLog[i].CustId == CustId)
-                {
-                    LogCount++;
-                }
-            }
-            if (LogCount > 2)
-            {
-                for (int i = 0; i < AllPasswordLog.Count; i++)
-                {
-                    for (int j = 0; j < AllPasswordLog.Count - i; j++)
-                    {
-                        if (AllPasswordLog[j].ChangeDM > AllPasswordLog[j++].ChangeDM)
-                        {
-                            var TempFirst = AllPasswordLog[j];
-                            var TempSecond = AllPasswordLog[j + 1];
-                            AllPasswordLog.Remove(TempFirst);
-                            AllPasswordLog.Remove(TempSecond);
-                            AllPasswordLog.Add(TempFirst, j + 1);
-                            AllPasswordLog.Add(TempSecond, j);
-                        }
-                    }
-
-                }
-                for (int i = 0; i < AllPasswordLog.Count; i++)
-                {
-                    if (AllPasswordLog[j].CustId == CustId && LogCount > 2)
-                    {
-                        AllPasswordLog.Remove(AllPasswordLog[j]);
-                        LogCount--;
-                    }
-
-                }
-
-            }
-
-            PasswordLog newEntry = new PasswordLog();
-            newEntry.CustId = CustId;
-            newEntry.LastPassword = LastPassword;
-            newEntry.ChangeDM = DateTime.Now;
-            AllPasswordLog.Add(newEntry)
-    
-
-    }
-
-        public static bool isViolecePasswordLogCheck(int CustId, string LastPassword)
-        {
-            for (int i = 0; i < AllPasswordLog.Count; i++)
-            {
-                if (AllPasswordLog[i].CustId == CustId && AllPasswordLog[i].LastPassword == LastPassword)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public static bool isForcePasswordChange(int CustId)
-        {
-            int Count = 0;
-            for (int i = 0; i < AllHistory.Count; i++)
-            {
-                if (AllHistory[i].CustId == CustId && AllHistory[i].TransType != "Opening")
-                {
-                    Count++;
-                }
-            }
-
-            if (Count % 5 == 0)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        public static void MaintainecFees(int CustId)
-        {
-            int Count = 0;
-            for (int i = 0; i < AllHistory.Count; i++)
-            {
-                if (AllHistory[i].CustId == CustId && AllHistory[i].TransType != "Opening")
-                {
-                    Count++;
-                }
-            }
-
-            if (Count % 10 == 0)
-            {
-                var topThreeBalancer = getTopCustomerDetails(3);
-                if (topThreeBalancer.(r => r.CustId != CustId))
-                {
-                    Withdrawal(100, CustId, "MaintainecFees");
-                }
-            }
-
-        }
-    }
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+class PasswordLog {
+	   public int CustId ;
+	   public String LastPassword;
+	   public Date ChangeDM;
 }
 
+public class Task
+{
+	public static List<TrancationHistory> AllHistory = new ArrayList();
+	public static List<PasswordLog> AllPasswordLog = new ArrayList();
+	public static List<Customer> AllCustomer = new ArrayList();
+	public static boolean AlreadyLogined = false;
+	public static boolean startSystem = true;
+	public static int CustId = 0;
+	public static String username = "";
+    
+	public static BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+	
+	public static void main(String[] args) throws IOException {
+        AllCustomer = Initialization(AllHistory);
+       
+        String username = "";
+        String Password = "";
+        
+        while(startSystem){
+        	System.out.println();
+            System.out.println("Press 1 to View user Details");
+            System.out.println("Press 2 to add new customer");
+            System.out.println("Press 3 to Cash Deposit");
+            System.out.println("Press 4 to ATM Withdrawal");
+            System.out.println("Press 5 to Money Tranfer");
+            System.out.println("Press 6 to Get report");
+            System.out.println("Press 7 to Get Top Customer Details");
+            System.out.println("Press 8 to change Password");
+            System.out.println("Press 9 to Exit");
+            String k = "";
+            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+            k = input.readLine();
+            
+            switch(k){
+                case "1": ShowAllUser(AllCustomer);
+                break;
+                case "2": 
+                    
+                    if(AlreadyLogined  || Authentication()){
+                        AddNewCustomer(AllCustomer, AllHistory);
+                    }
+                    else{
+                        System.out.println("Invalid user or no access");
+                    }
+                break;
+                case "3":  
+                    if(AlreadyLogined  || Authentication()){
+                        System.out.println("Enter Deposit balance");
+                        int Balance = Integer.parseInt(input.readLine());
+                        CashDeposit(Balance, CustId, "CashDeposit");
+                        System.out.println("Success");
+                        MaintainecFees(CustId);
+                        isForcePasswordChange(CustId);
+                    }
+                    else{
+                        System.out.println("Invalid user or no access");
+                    }
+                break;
+                case "4": if(AlreadyLogined  || Authentication()){
+                        System.out.println("Enter Withdrawal Amount");
+                        int Amount = Integer.parseInt(input.readLine());
+                        var status = Withdrawal(Amount, CustId, "ATM Withdrawal");
+                        System.out.println(status);
+                        MaintainecFees(CustId);
+                        isForcePasswordChange(CustId);
+                    }
+                    else{
+                        System.out.println("Invalid user or no access");
+                    }
+                break;
+                case "5": if(AlreadyLogined  || Authentication()){
+                             System.out.println("Enter To Account number");
+                        int AccountN = Integer.parseInt(input.readLine());
+                        System.out.println("Enter Tranfer Amount");
+                        int Amount = Integer.parseInt(input.readLine());
+                        var status =  MoneyTransfer(Amount, CustId, AccountN);
+                        System.out.println(status);
+                        MaintainecFees(CustId);
+                        isForcePasswordChange(CustId);
+                    }
+                    else{
+                        System.out.println("Invalid user or no access");
+                    }
+                break;
+                case "6":  if(AlreadyLogined  || Authentication()){
+                         System.out.println("Enter Customer id to get report");
+                         int CustomerId = Integer.parseInt(input.readLine());
+              
+                         var lsTrans = GetReport(CustomerId, AllHistory);
+                 		System.out.print("TransID \t TransType \t TrancationTM \t Balance");
+                		
+                 		lsTrans.stream().forEach(r -> {
+                			System.out.println();
+                			System.out.print(r.TransID +" \t");
+                			System.out.print(r.TransType +" \t");
+                			System.out.print(r.TrancationTM.toString() +" \t");
+                			System.out.print(r.Balance);			
+                		});
+                		System.out.println();
+                    }
+                    else{
+                        System.out.println("Invalid user or no access");
+                    }
+                break;    
+                case "7":  if(AlreadyLogined  || Authentication()){
+                         System.out.println("How many number of record needed");
+                        int count = Integer.parseInt(input.readLine());
+                        var topCustomer = getTopCustomerDetails(AllCustomer, count);
+                        ShowAllUser(topCustomer);
+                    }
+                    else{
+                        System.out.println("Invalid user or no access");
+                    }
+                break; 
+                case "8":  if(AlreadyLogined  || Authentication()){
+                            System.out.println("enter New password");
+                                Password = input.readLine();
+                                if(Password.length() < 8){
+                                    boolean flag = true;
+                                    while(flag){
+                                        System.out.println("New password should be 8 character");
+                                        Password = input.readLine();
+                                        if(Password.length() >= 8){
+                                            flag = false;
+                                        }
+                                    }
+                                }
+                              
+                                System.out.println("Reenter New password");
+                                String ReTypePassword = input.readLine();
+                                  if(!ReTypePassword.equals(Password)){
+                                    boolean flag = true;
+                                    while(flag){
+                                        System.out.println("New password and ReEntered password should be same");
+                                        ReTypePassword = input.readLine();
+                                        if(ReTypePassword.equals(Password)){
+                                            flag = false;
+                                        }
+                                    }
+                                }
+                         var status = changePassword(CustId, Password);
+                         System.out.println(status);
+                         
+                    }
+                    else{
+                        System.out.println("Invalid user or no access");
+                    }
+                break; 
+                case "9":  {
+                	AlreadyLogined = false;        			
+                }
+            }
+        }
+	}
+	
+	private static void ShowAllUser(List<Customer> allUser) {
+		System.out.print("AcountNumber \t CustomerId \t CustomerName \t Balance");
+		
+		allUser.stream().forEach(r -> {
+			System.out.println();
+			System.out.print(r.AcountNumber +" \t");
+			System.out.print(r.CustId +" \t");
+			System.out.print(r.CustName +" \t");
+			System.out.print(r.Balance);			
+		});
+		System.out.println();
+	}
+
+	public static List<Customer> Initialization(List<TrancationHistory> lsHistory){
+		int initialBalance = 10000;
+     	List<Customer> AllCustomer = new ArrayList();
+    	Customer cusObj = new Customer();
+    	cusObj.CustId = 11;
+		cusObj.AcountNumber = 11011;
+		cusObj.CustName = "Kumar";
+		cusObj.Balance = 10000;
+		cusObj.EncrytPwd = "bcdef";
+    	AllCustomer.add(cusObj);
+	  	PostTranctionHistory("Opening", cusObj.CustId, initialBalance, initialBalance, lsHistory);
+    	cusObj = new Customer();
+    	cusObj.CustId = 22;
+		cusObj.AcountNumber = 22022;
+		cusObj.CustName = "Siva";
+		cusObj.Balance = 10000;
+		cusObj.EncrytPwd = "bcdef";
+    	AllCustomer.add(cusObj);
+	  	PostTranctionHistory("Opening", cusObj.CustId, initialBalance, initialBalance, lsHistory);
+	  	
+	  	return AllCustomer;
+	}
+	
+	public static void AddNewCustomer(List<Customer> AllCustomer, List<TrancationHistory> lsHistory) throws IOException{
+	    String custName = "";
+	        String Password = "";
+	            String ReTypePassword = "";
+	            int initialBalance = 10000;
+        System.out.println("enter customer name");
+        custName = input.readLine();
+        System.out.println("enter New password");
+        Password = input.readLine();
+        if(Password.length() < 8){
+            boolean flag = true;
+            while(flag){
+                System.out.println("New password should be 8 character");
+                Password = input.readLine();
+                if(Password.length() >= 8){
+                    flag = false;
+                }
+            }
+        }
+      
+        System.out.println("Reenter New password");
+        ReTypePassword = input.readLine();
+          if(!ReTypePassword.equals(Password)){
+            boolean flag = true;
+            while(flag){
+                System.out.println("New password and ReEntered password should be same");
+                ReTypePassword = input.readLine();
+                if(ReTypePassword.equals(Password)){
+                    flag = false;
+                }
+            }
+        }
+        
+        System.out.println("if you want to enter initial balance. Press 1 or else Press 2");
+        String k = input.readLine();
+        switch(k){
+            case "1":{
+                      System.out.println("Enter amount");
+                    initialBalance = input.read();              
+            }
+            break;
+                
+        }
+        
+    	Customer cusObj = new Customer();
+    	cusObj.CustId = GenerateCutomerId(AllCustomer);
+		cusObj.AcountNumber = GenerateAccountNumber(AllCustomer);
+		cusObj.CustName = custName;
+		cusObj.Balance = initialBalance;
+		cusObj.EncrytPwd = EncryptPassword(Password);
+    	AllCustomer.add(cusObj);
+    	
+    	PostTranctionHistory("Opening", cusObj.CustId, initialBalance, initialBalance, lsHistory);
+	}
+	
+	
+	public static int GenerateCutomerId(List<Customer> AllCustomer){
+	    int maxId, newId = 0;
+	    if(AllCustomer.size() == 0){
+	        maxId = 11;
+	        return maxId;
+	    }
+	    maxId = AllCustomer.get(0).CustId;
+	    for(int i = 1; i < AllCustomer.size(); i++){
+	        if(maxId < AllCustomer.get(i).CustId){
+	            maxId = AllCustomer.get(i).CustId;
+	        }
+	    }
+	    int digitsCount = 0;
+	    int maxIDTemp = maxId;
+	    while(maxIDTemp > 0){
+	        int temp = maxIDTemp%10;
+	        digitsCount++;
+	        maxIDTemp = maxIDTemp/10;
+	    }
+	    
+	    int LastNum = maxId%10;
+        if(LastNum == 9){
+        	digitsCount = digitsCount + 1;
+            maxId = 0;
+        }
+	    for(int i = 0; i < digitsCount; i++){
+            int multipler = 1;
+	        for(int  k = 0; k < i; k++){
+	            multipler = multipler * 10; 
+	            //1, 10, 100 
+	        }
+	        
+            newId = newId + (multipler * (LastNum + 1));
+	    }
+	    return newId;
+	    
+	}
+	
+	public static int GenerateAccountNumber(List<Customer> AllCustomer){
+	    int maxAcc, newAcc = 0;
+	    if(AllCustomer.size() == 0){
+	        newAcc = 11011;
+	        return newAcc;
+	    }
+	    maxAcc = AllCustomer.get(0).AcountNumber;
+	    for(int i = 1; i < AllCustomer.size(); i++){
+	        if(maxAcc < AllCustomer.get(i).AcountNumber){
+	            maxAcc = AllCustomer.get(i).AcountNumber;
+	        }
+	    }
+	    int digitsCount = 0;
+	    int maxAccTemp = maxAcc;
+	    while(maxAccTemp > 0){
+	        int temp = maxAccTemp%10;
+	        digitsCount++;
+	        maxAccTemp = maxAccTemp/10;
+	    }
+
+	    int LastmaxAcc = maxAcc%10;
+        if(LastmaxAcc == 9){
+        	digitsCount = digitsCount + 2;
+            maxAcc = 0;
+        }
+	    for(int i = 0; i < digitsCount; i++){
+	        int multipler = 1;
+	        for(int  k = 0; k < i; k++){
+	            multipler = multipler * 10; 
+	            //1, 10, 100 
+	        }
+	        if(digitsCount/2 == i){
+	        	multipler = multipler * i;
+	        }
+	        else{    	        
+    	        newAcc = newAcc + (multipler * (LastmaxAcc + 1));
+	        }
+	    }
+	    
+	    return newAcc;
+	    
+	}
+	
+	
+	public static String EncryptPassword(String pwd){
+	    String EncrytPwd = "";
+	    for(int i = 0; i < pwd.length(); i++){
+	        int ascilKey = (int) pwd.charAt(i);
+	        if(ascilKey >= 65 && ascilKey <= 90){
+	            ascilKey = ascilKey == 90?  65 : ascilKey + 1;
+	        }
+	        else if(ascilKey >= 97 && ascilKey <= 122){
+	            ascilKey = ascilKey == 122?  97 : ascilKey + 1;
+	        }
+            else if(ascilKey >= 48 && ascilKey <= 57){
+	            ascilKey = ascilKey == 57?  48 : ascilKey + 1;
+	        }
+	        
+	        EncrytPwd = EncrytPwd.concat((char)ascilKey+"");
+	    }
+	    
+	    return EncrytPwd;
+	}
+	
+	
+	public static boolean Authentication() throws IOException{
+	    System.out.println("Enter your username to authenticate");
+        String  Username = input.readLine();
+        System.out.println("Enter your password to authenticate");
+        String  Password = input.readLine();
+        boolean s = AllCustomer.stream().anyMatch(r -> r.CustName.equalsIgnoreCase(Username));
+        if(s){
+            if(AllCustomer.stream().anyMatch(r -> r.CustName.equalsIgnoreCase(Username) && r.EncrytPwd.equalsIgnoreCase(EncryptPassword(Password)))){
+                AlreadyLogined = true;
+                username = Username;
+                CustId = AllCustomer.stream().filter(r -> r.CustName.equalsIgnoreCase(Username) && r.EncrytPwd.equalsIgnoreCase(EncryptPassword(Password))).findFirst().get().CustId;                		;
+                return true;
+            }
+ 	    }
+	    else{
+	        return false;
+	    }
+		return false;
+	}
+	
+	public static String DecrytionPwd(String Password){
+	    String DecrytPwd = "";
+	    for(int i = 0; i < Password.length(); i++){
+	        int ascilKey = (int) Password.charAt(i);
+	        if(ascilKey >= 65 && ascilKey <= 90){
+	            ascilKey = ascilKey == 90?  65 : ascilKey + 1;
+	        }
+	        else if(ascilKey >= 97 && ascilKey <= 122){
+	            ascilKey = ascilKey == 122?  97 : ascilKey + 1;
+	        }
+	        else if(ascilKey >= 48 && ascilKey <= 57){
+	            ascilKey = ascilKey == 57?  48 : ascilKey + 1;
+	        }
+	        DecrytPwd = DecrytPwd.concat((char)ascilKey+"");
+	    }
+	    
+	    return DecrytPwd;
+	}
+	
+	public static int CashDeposit(int Balance, int CustId, String TransType){
+	    int newBalance = 0;
+        for(int i = 0; i < AllCustomer.size(); i++){
+            if(AllCustomer.get(i).CustId == CustId){
+                AllCustomer.get(i).Balance = AllCustomer.get(i).Balance + Balance;
+                newBalance = AllCustomer.get(i).Balance;
+    	        PostTranctionHistory(TransType, CustId, Balance, newBalance, AllHistory);
+                break;
+            } 
+        }
+        
+        return newBalance;
+	} 
+	
+	public static String Withdrawal(int EnteredAmount, int CustId, String TransType){
+	    String status = "";
+        for(int i = 0; i < AllCustomer.size(); i++){
+            if(AllCustomer.get(i).CustId == CustId){
+                status = validatingMoney(EnteredAmount, CustId);
+                if(status == "Success"){
+                    AllCustomer.get(i).Balance = AllCustomer.get(i).Balance - EnteredAmount;
+                    PostTranctionHistory(TransType, CustId, EnteredAmount,  AllCustomer.get(i).Balance, AllHistory);
+                }
+            }
+        }
+        
+        return status;
+	}
+	
+	public static String MoneyTransfer(int EnteredAmount, int CustId, int ToCustAccNo)
+	{
+	    String status = "";
+	    int existingBal = 0;
+        for(int i = 0; i < AllCustomer.size(); i++) {
+            if(AllCustomer.get(i).AcountNumber == ToCustAccNo){
+                status = validatingMoney(EnteredAmount, CustId);
+                if(status == "Success"){
+                    existingBal = AllCustomer.get(i).Balance; 
+                    int newBal = CashDeposit(EnteredAmount, AllCustomer.get(i).CustId, "TransferTo"+ToCustAccNo);
+                    if(newBal - EnteredAmount == existingBal){
+                       status = Withdrawal(EnteredAmount, CustId, "TransferFrom"+AllCustomer.stream().findFirst().get().AcountNumber);
+                    }
+                }
+            }
+        }
+        
+        return status;
+	}
+	
+	public static String validatingMoney(int EnteredAmount, int CustId){
+	    String statusMsg = "";
+        for(int i = 0; i < AllCustomer.size(); i++){
+            if(AllCustomer.get(i).CustId == CustId){
+               if(AllCustomer.get(i).Balance - 1000 >= EnteredAmount ){
+                   statusMsg = "Success";
+               }
+               else{
+                    statusMsg = "Violating maintain a minimum balance of 1000";
+                    if(AllCustomer.get(i).Balance >= EnteredAmount ){
+                        statusMsg = "Insuffient balance";
+                    }
+               }
+            } 
+        }
+        
+        return statusMsg;
+	}
+	
+	public static void PostTranctionHistory(String TransType, 
+	int CustId, int Amount, int balance, List<TrancationHistory> lsHistory){
+	    int TranId = lsHistory.size() > 0 ? lsHistory.size() + 1 : 1;
+        TrancationHistory newTra = new TrancationHistory();
+        newTra.CustId = CustId;
+        newTra.TransID = TranId;
+        newTra.TransType = TransType;
+        newTra.Amount = Amount;
+        newTra.Balance = balance;
+        SimpleDateFormat dft = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date now = new Date();
+        newTra.TrancationTM = now;
+	    lsHistory.add(newTra);
+	}
+	
+	public static List<TrancationHistory> GetReport(int CustId, List<TrancationHistory> lsHistory){
+	    return lsHistory.stream().filter(r -> r.CustId == CustId).collect(Collectors.toList());
+	}
+	
+	public static List<Customer> getTopCustomerDetails(List<Customer> AllCustomer, int n){
+	    
+	    List<Customer> newList = new ArrayList();
+	    //bubble sort
+	    for(int i = 0; i < AllCustomer.size(); i++){
+	        for(int j = 0; j < AllCustomer.size() - i; j++){
+	            if(AllCustomer.get(j).Balance > AllCustomer.get(j++).Balance){
+	                var TempFirst = AllCustomer.get(j);
+	                var TempSecond = AllCustomer.get(j++);
+	                AllCustomer.remove(TempFirst);
+	                AllCustomer.remove(TempSecond);
+	                AllCustomer.add(j + 1, TempFirst);
+	                AllCustomer.add(j, TempSecond);
+	            }
+	        }
+	    }
+	    
+	    if(n > AllCustomer.size()) {
+	    	n = AllCustomer.size();
+	    }
+	    
+	    for(int i = 0; i < n; i++){
+	        newList.add(AllCustomer.get(i));
+	    }
+	    return newList;
+	}
+	
+	
+	public static String changePassword(int CustId, String Pwd){
+	    String status = "";
+	    if(Pwd.length() >= 8){
+	        int lowerCount = 0, upperCount = 0, numCount = 0;
+	        for(int i = 0; i < Pwd.length(); i++){
+	        	 int ascilKey = (int) Pwd.charAt(i);
+	 	        if(ascilKey >= 65 && ascilKey <= 90){
+	 	        	upperCount++;
+	 	        }
+	 	        else if(ascilKey >= 97 && ascilKey <= 122){
+	 	        	lowerCount++;
+	 	        }
+	 	        else if(ascilKey >= 48 && ascilKey <= 57){
+	 	        	numCount++;
+	 	        }
+	            
+	        }
+	        if(lowerCount < 2){
+	            status = "At least 2 lower case";
+	        }
+            else if(upperCount < 2){
+	            status = "At least 2 upper case";
+	        }
+            else if(numCount < 2){
+	            status = "At least 2 numbers";
+	        }
+	        else if(isViolecePasswordLogCheck(CustId, EncryptPassword(Pwd))) {
+	             status = "Should be new Password from last 3 password";
+	        }
+	        else{
+	            String EnPwd = EncryptPassword(Pwd);
+        	    for(int i = 0; i < AllCustomer.size(); i++){
+        	          if(AllCustomer.get(i).CustId == CustId){
+        	              AllCustomer.get(i).EncrytPwd = EnPwd;
+        	              PostPasswordHistory(CustId, EnPwd);
+        	          }
+        	    }
+	            status = "Success";
+	        }
+	    }
+	    
+	    else{
+	        status = "New Password minimum length of 8";
+	   }
+	    
+	   return status;
+	}
+	
+	public static void PostPasswordHistory(int CustId, String LastPassword){
+	    int LogCount = 0;
+        for(int i = 0; i < AllPasswordLog.size(); i++){
+	        if(AllPasswordLog.get(i).CustId == CustId){
+	            LogCount++;
+	        }
+	    }
+	    if(LogCount > 2){
+	        for(int i = 0; i < AllPasswordLog.size(); i++){
+    	        for(int j = 0; j < AllPasswordLog.size() - i; j++){
+    	            if(AllPasswordLog.get(j).ChangeDM.before(AllPasswordLog.get(j++).ChangeDM)){
+    	                var TempFirst = AllPasswordLog.get(j);
+    	                var TempSecond = AllPasswordLog.get(j++);
+    	                AllPasswordLog.remove(TempFirst);
+    	                AllPasswordLog.remove(TempSecond);
+    	                AllPasswordLog.add(j + 1, TempFirst);
+    	                AllPasswordLog.add(j, TempSecond);
+    	            }
+    	        }
+    	        
+	        }
+	        for(int i = 0; i < AllPasswordLog.size(); i++){
+                if(AllPasswordLog.get(i).CustId == CustId && LogCount > 2){
+                    AllPasswordLog.remove(AllPasswordLog.get(i));
+                    LogCount--;
+                }
+	            
+	        }
+	        
+	    }
+	    
+	    PasswordLog newEntry = new PasswordLog();
+	    newEntry.CustId = CustId;
+	    newEntry.LastPassword = LastPassword;
+	    newEntry.ChangeDM = new Date();
+	    AllPasswordLog.add(newEntry);
+	    
+	}
+	
+	public static boolean isViolecePasswordLogCheck(int CustId, String LastPassword){
+	    for(int i = 0; i < AllPasswordLog.size(); i++){
+	        if(AllPasswordLog.get(i).CustId == CustId && AllPasswordLog.get(i).LastPassword == LastPassword){
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	
+	public static boolean isForcePasswordChange(int CustId){
+	    int Count = 0;
+        for(int i = 0; i < AllHistory.size(); i++){
+	        if(AllHistory.get(i).CustId == CustId && AllHistory.get(i).TransType != "Opening"){
+	            Count++;
+	        }
+	    }
+	    
+	    if(Count % 5 == 0){
+	        return true;
+	    }
+	    return false;
+    }
+    
+	public static void MaintainecFees(int CustId){
+	    int Count = 0;
+        for(int i = 0; i < AllHistory.size(); i++){
+	        if(AllHistory.get(i).CustId == CustId && AllHistory.get(i).TransType != "Opening"){
+	            Count++;
+	        }
+	    }
+	    
+	    if(Count % 10 == 0){
+	        var topThreeBalancer =  getTopCustomerDetails(AllCustomer, 3);
+	        if(topThreeBalancer.stream().anyMatch(r -> r.CustId != CustId)){
+	            Withdrawal(100, CustId, "MaintainecFees");
+	        }
+	    }
+	   
+    }
+	
+	
+}
