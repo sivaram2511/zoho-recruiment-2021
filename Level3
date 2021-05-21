@@ -4,6 +4,8 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collector;
@@ -13,7 +15,33 @@ class PasswordLog {
 	   public int CustId ;
 	   public String LastPassword;
 	   public Date ChangeDM;
+	   
+	   public Date GetChangeDM() {
+	    	return ChangeDM;
+	    }
 }
+
+class Customer {
+    public int CustId;
+    public int AcountNumber ;
+    public String CustName;
+    public int Balance ;
+    public String EncrytPwd ;
+    
+    public int GetBalance() {
+    	return Balance;
+    }
+}
+
+class TrancationHistory {
+    public int CustId ;
+    public int TransID ;
+    public String TransType ;
+    public int Balance ;
+    public int Amount ;
+    public Date TrancationTM;
+}
+
 
 public class Task
 {
@@ -495,26 +523,29 @@ public class Task
 	    
 	    List<Customer> newList = new ArrayList();
 	    //bubble sort
-	    for(int i = 0; i < AllCustomer.size(); i++){
-	        for(int j = 0; j < AllCustomer.size() - i; j++){
-	            if(AllCustomer.get(j).Balance > AllCustomer.get(j++).Balance){
-	                var TempFirst = AllCustomer.get(j);
-	                var TempSecond = AllCustomer.get(j++);
-	                AllCustomer.remove(TempFirst);
-	                AllCustomer.remove(TempSecond);
-	                AllCustomer.add(j + 1, TempFirst);
-	                AllCustomer.add(j, TempSecond);
-	            }
-	        }
-	    }
+//	    for(int i = 0; i < AllCustomer.size(); i++){
+//	        for(int j = 0; j < AllCustomer.size() - i; j++){
+//	            if(AllCustomer.get(j).Balance > AllCustomer.get(j++).Balance){
+//	                var TempFirst = AllCustomer.get(j);
+//	                var TempSecond = AllCustomer.get(j++);
+//	                AllCustomer.remove(TempFirst);
+//	                AllCustomer.remove(TempSecond);
+//	                AllCustomer.add(j + 1, TempFirst);
+//	                AllCustomer.add(j, TempSecond);
+//	            }
+//	        }
+//	    }
+//	    
+//	    if(n > AllCustomer.size()) {
+//	    	n = AllCustomer.size();
+//	    }
+//	    
+//	    for(int i = 0; i < n; i++){
+//	        newList.add(AllCustomer.get(i));
+//	    }
 	    
-	    if(n > AllCustomer.size()) {
-	    	n = AllCustomer.size();
-	    }
+	    newList = AllCustomer.stream().sorted(Comparator.comparing(Customer::GetBalance)).collect(Collectors.toList());
 	    
-	    for(int i = 0; i < n; i++){
-	        newList.add(AllCustomer.get(i));
-	    }
 	    return newList;
 	}
 	
@@ -546,7 +577,7 @@ public class Task
 	            status = "At least 2 numbers";
 	        }
 	        else if(isViolecePasswordLogCheck(CustId, EncryptPassword(Pwd))) {
-	             status = "Should be new Password from last 3 password";
+	             status = "Should be different Password from last 3 password";
 	        }
 	        else{
 	            String EnPwd = EncryptPassword(Pwd);
@@ -569,33 +600,43 @@ public class Task
 	
 	public static void PostPasswordHistory(int CustId, String LastPassword){
 	    int LogCount = 0;
-        for(int i = 0; i < AllPasswordLog.size(); i++){
-	        if(AllPasswordLog.get(i).CustId == CustId){
-	            LogCount++;
-	        }
-	    }
+	    
+//        for(int i = 0; i < AllPasswordLog.size(); i++){
+//	        if(AllPasswordLog.get(i).CustId == CustId){
+//	            LogCount++;
+//	        }
+//	    }
+//	    if(LogCount > 2){
+//	        for(int i = 0; i < AllPasswordLog.size(); i++){
+//    	        for(int j = 0; j < AllPasswordLog.size() - i; j++){
+//    	            if(AllPasswordLog.get(j).ChangeDM.before(AllPasswordLog.get(j++).ChangeDM)){
+//    	                var TempFirst = AllPasswordLog.get(j);
+//    	                var TempSecond = AllPasswordLog.get(j++);
+//    	                AllPasswordLog.remove(TempFirst);
+//    	                AllPasswordLog.remove(TempSecond);
+//    	                AllPasswordLog.add(j + 1, TempFirst);
+//    	                AllPasswordLog.add(j, TempSecond);
+//    	            }
+//    	        }
+//    	        
+//	        }
+//	        for(int i = 0; i < AllPasswordLog.size(); i++){
+//                if(AllPasswordLog.get(i).CustId == CustId && LogCount > 2){
+//                    AllPasswordLog.remove(AllPasswordLog.get(i));
+//                    LogCount--;
+//                }
+//	            
+//	        }
+//	        
+//	    }
+	    
+	    LogCount = AllPasswordLog.stream().filter(r -> r.CustId == CustId).collect(Collectors.toList()).size();
+	    
 	    if(LogCount > 2){
-	        for(int i = 0; i < AllPasswordLog.size(); i++){
-    	        for(int j = 0; j < AllPasswordLog.size() - i; j++){
-    	            if(AllPasswordLog.get(j).ChangeDM.before(AllPasswordLog.get(j++).ChangeDM)){
-    	                var TempFirst = AllPasswordLog.get(j);
-    	                var TempSecond = AllPasswordLog.get(j++);
-    	                AllPasswordLog.remove(TempFirst);
-    	                AllPasswordLog.remove(TempSecond);
-    	                AllPasswordLog.add(j + 1, TempFirst);
-    	                AllPasswordLog.add(j, TempSecond);
-    	            }
-    	        }
-    	        
-	        }
-	        for(int i = 0; i < AllPasswordLog.size(); i++){
-                if(AllPasswordLog.get(i).CustId == CustId && LogCount > 2){
-                    AllPasswordLog.remove(AllPasswordLog.get(i));
-                    LogCount--;
-                }
-	            
-	        }
-	        
+	    	 var old = AllPasswordLog.stream().filter(r -> r.CustId == CustId).sorted(Comparator.comparing(PasswordLog::GetChangeDM))
+	    	 	.findFirst().get();
+	    	 
+	    	 AllPasswordLog.remove(old);
 	    }
 	    
 	    PasswordLog newEntry = new PasswordLog();
@@ -608,7 +649,7 @@ public class Task
 	
 	public static boolean isViolecePasswordLogCheck(int CustId, String LastPassword){
 	    for(int i = 0; i < AllPasswordLog.size(); i++){
-	        if(AllPasswordLog.get(i).CustId == CustId && AllPasswordLog.get(i).LastPassword == LastPassword){
+	        if(AllPasswordLog.get(i).CustId == CustId && AllPasswordLog.get(i).LastPassword.equalsIgnoreCase(LastPassword)){
 	            return true;
 	        }
 	    }
@@ -618,7 +659,7 @@ public class Task
 	public static boolean isForcePasswordChange(int CustId){
 	    int Count = 0;
         for(int i = 0; i < AllHistory.size(); i++){
-	        if(AllHistory.get(i).CustId == CustId && AllHistory.get(i).TransType != "Opening"){
+	        if(AllHistory.get(i).CustId == CustId && !AllHistory.get(i).TransType.equalsIgnoreCase("Opening")){
 	            Count++;
 	        }
 	    }
