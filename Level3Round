@@ -1,0 +1,559 @@
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+class Employee{
+	public Integer ID;
+	public String Name;
+	public Integer Age;
+	public String Department;
+	public String Designation;
+	public String ReportingTo;
+}
+
+
+class Search{
+	public String Conditions;
+	public String Value;
+}
+
+public class Level3Task {
+	
+
+	
+	public static List<Employee> AllEmployees = new ArrayList<>();
+	public static boolean  SystemStart;
+	
+	public static BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+
+	public static void main(String[] args) throws IOException {
+		
+		System.out.println("System Started");
+		SystemStart = true;
+		AllEmployees = Initialation();
+		
+		while(SystemStart) {
+			System.out.println("\n");
+			System.out.println("Press 1 Show all Records");
+			System.out.println("Press 2 Search Records");
+			System.out.println("Press 3 Manager Report");
+			System.out.println("Press 4 Reporting to Tree");
+			System.out.println("Press 5 Summary of Records");
+			
+			String choose = input.readLine();
+			switch(choose) {
+				case "1" : {
+					ShowAll(AllEmployees);										
+				}
+				break;
+				
+				case "2" : {
+					search();
+				}
+				break;
+				
+				case "3" : {
+					ManagerReport();
+				}
+				break;
+				
+				case "4" : {
+					ReportingToTree();
+				}
+				break;
+				
+				case "5" : {
+					SummaryofRecords();
+				}
+				break;
+			}
+			
+		}
+	}
+
+	private static void SummaryofRecords() {
+		System.out.println("\n");
+		System.out.println("All departments summary");
+		List<Employee> groupDepartment = new ArrayList<>();
+		System.out.println("Department Name \t Count");
+		for(var emp : AllEmployees) {
+			if(groupDepartment.stream().noneMatch(r -> r.Department.equalsIgnoreCase(emp.Department))) {
+				groupDepartment.add(emp);				
+			}
+		}
+		groupDepartment.stream().forEach(r -> {
+			System.out.println();
+			System.out.print(r.Department+"\t\t ");
+			System.out.print(AllEmployees.stream().filter(x -> x.Department.equalsIgnoreCase(r.Department)).collect(Collectors.toList()).size());
+		});
+		
+		System.out.println("\n");
+		System.out.println("All Designation summary");
+		System.out.println("Designation Name \t Count");
+		List<Employee> groupDesignation  = new ArrayList<>();
+		
+		for(var emp : AllEmployees) {
+			if(groupDesignation.stream().noneMatch(r -> r.Designation.equalsIgnoreCase(emp.Designation))) {
+				groupDesignation.add(emp);				
+			}
+		}
+		groupDesignation.stream().forEach(r -> {
+			System.out.println();
+			System.out.print(r.Designation+"\t\t ");
+			System.out.print(AllEmployees.stream().filter(x -> x.Designation.equalsIgnoreCase(r.Designation)).collect(Collectors.toList()).size());
+		});
+		
+		System.out.println("\n");
+		System.out.println("All Managers summary");
+		System.out.println("Manager Name \t Count");
+		List<Employee> groupManagers   = new ArrayList<>();
+		
+		for(var emp : AllEmployees) {
+			if(groupManagers.stream().noneMatch(r -> r.ReportingTo.equalsIgnoreCase(emp.ReportingTo))) {
+				if(!emp.ReportingTo.equalsIgnoreCase("")) {
+					groupManagers.add(emp);				
+				}
+			}
+		}
+		groupManagers.stream().distinct().forEach(r -> {
+			System.out.println();
+			System.out.print(r.ReportingTo+"\t\t ");
+			System.out.print(AllEmployees.stream().filter(x -> x.ReportingTo.equalsIgnoreCase(r.ReportingTo)).collect(Collectors.toList()).size());
+		});
+	}
+
+	private static void ReportingToTree() throws IOException {
+		// TODO Auto-generated method stub
+		System.out.println("For Whom need to show");		
+		String managerName = input.readLine();
+		System.out.print("For"+ managerName+ ", " + managerName);	
+		PrintMyReporterName(managerName);
+	}
+
+	private static void PrintMyReporterName(String managerName) {
+		if(AllEmployees.stream().noneMatch(r -> r.Name.equalsIgnoreCase(managerName))) {
+			return;
+		}
+		else {
+			String myManager = AllEmployees.stream().filter(r -> r.Name.equalsIgnoreCase(managerName)).findFirst().get().ReportingTo;
+			if(!myManager.equalsIgnoreCase("")) {
+				System.out.print(" -> " + myManager);	
+			}
+			PrintMyReporterName(myManager);
+		}
+	}
+
+	private static void ManagerReport() throws IOException {
+		
+		System.out.println("Enter Report Manager Name");		
+		String managerName = input.readLine();
+		var reportlist =  AllEmployees.stream().filter(r -> r.ReportingTo.equalsIgnoreCase(managerName)).collect(Collectors.toList());
+		ShowAll(reportlist);
+	}
+
+	private static void search() throws IOException {
+		
+		HashMap<String, Search> searchCreatria = new HashMap();
+		
+		boolean Addanothercriteria = true;
+		while(Addanothercriteria) 
+		{
+			System.out.println("Select Any field for search");
+			
+			System.out.println("Press 1 for Name");
+			System.out.println("Press 2 for Age");
+			System.out.println("Press 3 for Designation");
+			System.out.println("Press 4 for Department");
+			System.out.println("Press 5 for ReportingTo");
+			System.out.println("\n");
+			
+			String searchField = input.readLine();
+			boolean isIntType = false;
+			if(searchField.equalsIgnoreCase("2")) {
+				isIntType = true;
+			}
+			String searchCondition;
+			if(!isIntType) {
+				System.out.println("Press 1 for Equals");
+				System.out.println("Press 2 for Not Equals");
+				System.out.println("Press 3 for Starts With");
+				System.out.println("Press 4 for Ends With");
+				System.out.println("Press 5 for Contains"); 
+				System.out.println("Press 6 for Not Contains");
+				searchCondition = input.readLine();
+			}
+			else {
+				System.out.println("Press 1 for >");
+				System.out.println("Press 2 for <");
+				System.out.println("Press 3 for =");
+				System.out.println("Press 4 for !");
+				System.out.println("Press 5 for between"); 		
+				searchCondition = input.readLine();
+			}
+			
+			System.out.println("Enter search key");
+			String searchValue = "";
+			if(isIntType) {				
+				searchValue =  input.readLine().toString();
+			}
+			else {
+				searchValue = input.readLine();
+			}
+			
+			
+			if(!searchCreatria.containsKey(searchField)) {
+				Search s = new Search();
+				s.Conditions = searchCondition;
+				s.Value = searchValue;
+				searchCreatria.put(searchField, s);
+			}			
+			
+
+			System.out.println("Press 1 Add another criteria"); 
+			String repeat = input.readLine();
+			if(!repeat.equalsIgnoreCase("1")) {
+				Addanothercriteria = false;
+			}
+		}
+		
+		List<Employee> searchList = Searching(AllEmployees, searchCreatria);
+		ShowAll(searchList);		
+		
+	}
+
+	private static List<Employee> Searching(List<Employee> allEmployees2, HashMap<String, Search> searchCreatria) {
+		List<Employee> Employees = new ArrayList<>();
+		
+		Set<String> keys = searchCreatria.keySet();
+		for (Employee emp : allEmployees2) {
+			boolean isOk = false;
+			for (String k : keys) {
+				var v = searchCreatria.get(k);
+				
+				//Name
+				if(k.equalsIgnoreCase("1")) {
+					if(v.Conditions.equalsIgnoreCase("1")) {
+						if(emp.Name.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("2")) {
+						if(!emp.Name.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("3")) {
+						if(emp.Name.startsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("4")) {
+						if(emp.Name.endsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("5")) {
+						if(emp.Name.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("6")) {
+						if(!emp.Name.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+				}
+				
+				//Age
+				if(k.equalsIgnoreCase("2")) {
+					if(v.Conditions.equalsIgnoreCase("1")) {
+						if(emp.Age > Integer.parseInt(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("2")) {
+						if(emp.Age < Integer.parseInt(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+
+					}
+					if(v.Conditions.equalsIgnoreCase("3")) {
+						if(emp.Age == Integer.parseInt(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("4")) {
+						if(emp.Age != Integer.parseInt(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("5")) {
+						if(emp.Age < Integer.parseInt(v.Value) && emp.Age > Integer.parseInt(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					
+				}
+			
+				//Designation
+				if(k.equalsIgnoreCase("3")) {
+					if(v.Conditions.equalsIgnoreCase("1")) {
+						if(emp.Designation.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("2")) {
+						if(!emp.Designation.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("3")) {
+						if(emp.Designation.startsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("4")) {
+						if(emp.Designation.endsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("5")) {
+						if(emp.Designation.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("6")) {
+						if(!emp.Designation.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+				}
+				
+				//Department
+				if(k.equalsIgnoreCase("4")) {
+					if(v.Conditions.equalsIgnoreCase("1")) {
+						if(emp.Department.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("2")) {
+						if(!emp.Department.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("3")) {
+						if(emp.Department.startsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("4")) {
+						if(emp.Department.endsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("5")) {
+						if(emp.Department.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("6")) {
+						if(!emp.Department.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+				}
+				
+				//ReportingTo
+				if(k.equalsIgnoreCase("5")) {
+					if(v.Conditions.equalsIgnoreCase("1")) {
+						if(emp.ReportingTo.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("2")) {
+						if(!emp.ReportingTo.equals(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("3")) {
+						if(emp.ReportingTo.startsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("4")) {
+						if(emp.ReportingTo.endsWith(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("5")) {
+						if(emp.ReportingTo.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+					if(v.Conditions.equalsIgnoreCase("6")) {
+						if(!emp.ReportingTo.contains(v.Value)) {
+							isOk = true;
+						}
+						else {
+							isOk = false;
+						}
+					}
+				}
+			}
+			
+			if(isOk) {
+				Employees.add(emp);
+			}
+		}
+		
+		return Employees;
+	}
+
+	private static void ShowAll(List<Employee> empls) {
+		
+		System.out.print("Name" +"\t");
+		System.out.print("Age" + "\t");
+		System.out.print("Designation" + "\t");
+		System.out.print("Department"+"\t");
+		System.out.print("ReportingTo");
+		
+		empls.stream().forEach(r -> {
+			System.out.println();
+			System.out.print(r.Name+"\t");
+			System.out.print(r.Age+"\t");
+			System.out.print(r.Designation+"\t");
+			System.out.print(r.Department+"\t");
+			System.out.print(r.ReportingTo);
+		});
+	}
+
+	private static List<Employee> Initialation() {
+		List<Employee> Employees = new ArrayList<>();
+		var dummy = new Employee();
+		dummy.ID = 1;
+		dummy.Name = "Sriram";
+		dummy.Age = 45;
+		dummy.Department = "Management";
+		dummy.Designation = "CEO";
+		dummy.ReportingTo = "";
+		Employees.add(dummy);
+		dummy = new Employee();
+		dummy.ID = 2;
+		dummy.Name = "Mukund";
+		dummy.Age = 42;
+		dummy.Department = "HR";
+		dummy.Designation = "HR Manager";
+		dummy.ReportingTo = "Sriram";
+		Employees.add(dummy);
+		dummy = new Employee();
+		dummy.ID = 3;
+		dummy.Name = "Sebastian";
+		dummy.Age = 38;
+		dummy.Department = "Finance";
+		dummy.Designation = "Finance Manager";
+		dummy.ReportingTo = "Sriram";
+		Employees.add(dummy);
+		dummy = new Employee();
+		dummy.ID = 4;
+		dummy.Name = "Aashritha";
+		dummy.Age = 32;
+		dummy.Department = "Product Management";
+		dummy.Designation = "Dev Manager";
+		dummy.ReportingTo = "Sriram";
+		Employees.add(dummy);
+				
+		return Employees;
+	}
+}
