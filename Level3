@@ -95,7 +95,9 @@ public class Task
                         CashDeposit(Balance, CustId, "CashDeposit");
                         System.out.println("Success");
                         MaintainecFees(CustId);
-                        isForcePasswordChange(CustId);
+                        if(isForcePasswordChange(CustId)) {
+                        	 System.out.println(changePassword()); 
+                        }
                     }
                     else{
                         System.out.println("Invalid user or no access");
@@ -107,7 +109,9 @@ public class Task
                         var status = Withdrawal(Amount, CustId, "ATM Withdrawal");
                         System.out.println(status);
                         MaintainecFees(CustId);
-                        isForcePasswordChange(CustId);
+                        if(isForcePasswordChange(CustId)) {
+                       	 System.out.println(changePassword()); 
+                       }
                     }
                     else{
                         System.out.println("Invalid user or no access");
@@ -121,7 +125,9 @@ public class Task
                         var status =  MoneyTransfer(Amount, CustId, AccountN);
                         System.out.println(status);
                         MaintainecFees(CustId);
-                        isForcePasswordChange(CustId);
+                        if(isForcePasswordChange(CustId)) {
+                       	 System.out.println(changePassword()); 
+                       }
                     }
                     else{
                         System.out.println("Invalid user or no access");
@@ -157,35 +163,8 @@ public class Task
                         System.out.println("Invalid user or no access");
                     }
                 break; 
-                case "8":  if(AlreadyLogined  || Authentication()){
-                            System.out.println("enter New password");
-                                Password = input.readLine();
-                                if(Password.length() < 8){
-                                    boolean flag = true;
-                                    while(flag){
-                                        System.out.println("New password should be 8 character");
-                                        Password = input.readLine();
-                                        if(Password.length() >= 8){
-                                            flag = false;
-                                        }
-                                    }
-                                }
-                              
-                                System.out.println("Reenter New password");
-                                String ReTypePassword = input.readLine();
-                                  if(!ReTypePassword.equals(Password)){
-                                    boolean flag = true;
-                                    while(flag){
-                                        System.out.println("New password and ReEntered password should be same");
-                                        ReTypePassword = input.readLine();
-                                        if(ReTypePassword.equals(Password)){
-                                            flag = false;
-                                        }
-                                    }
-                                }
-                         var status = changePassword(CustId, Password);
-                         System.out.println(status);
-                         
+                case "8":  if(AlreadyLogined  || Authentication()){                	
+                         System.out.println(changePassword());                         
                     }
                     else{
                         System.out.println("Invalid user or no access");
@@ -547,6 +526,38 @@ public class Task
 	    newList = AllCustomer.stream().sorted(Comparator.comparing(Customer::GetBalance)).collect(Collectors.toList());
 	    
 	    return newList;
+	}
+	
+	public static String changePassword() throws IOException
+	{
+		System.out.println("enter New password");
+        String Password = input.readLine();
+        if(Password.length() < 8){
+            boolean flag = true;
+            while(flag){
+                System.out.println("New password should be 8 character");
+                Password = input.readLine();
+                if(Password.length() >= 8){
+                    flag = false;
+                }
+            }
+        }
+      
+        System.out.println("Reenter New password");
+        String ReTypePassword = input.readLine();
+          if(!ReTypePassword.equals(Password)){
+            boolean flag = true;
+            while(flag){
+                System.out.println("New password and ReEntered password should be same");
+                ReTypePassword = input.readLine();
+                if(ReTypePassword.equals(Password)){
+                    flag = false;
+                }
+            }
+        }
+          
+		 var status = changePassword(CustId, Password);
+		return status;
 	}
 	
 	
